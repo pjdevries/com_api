@@ -161,7 +161,25 @@ class ApiPlugin extends JPlugin
 	 */
 	public function __construct(&$subject, $config = array())
 	{
-		// Parent::__construct($subject, $config);
+		parent::__construct($subject, $config);
+
+		set_error_handler(function ($errno, $errstr, $errfile, $errline, $errcontext)
+        {
+            // Error was suppressed with @-operator
+		    if (error_reporting() === 0)
+            {
+                return false;
+            }
+
+		    // Ignore warnings and notices.
+		    if ($errno & (E_WARNING | E_USER_WARNING | E_NOTICE | E_USER_NOTICE))
+            {
+                return true;
+            }
+
+            // Handle all other errors.
+            ApiError::raiseError(500, "Unforeseen error: $errno: $errstr ($errfile, $errline)!");
+        });
 	}
 
 	/**
